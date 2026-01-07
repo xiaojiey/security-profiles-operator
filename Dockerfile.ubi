@@ -18,18 +18,29 @@
 # for more details
 
 # hash below referred to latest
-FROM registry.access.redhat.com/ubi8/go-toolset@sha256:3f9754728f2ae36083badb14d57fa384ee7ce482f9bfa07d8b8967ea4f8a782a as build
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.24-openshift-4.20 AS build
 USER root
 WORKDIR /work
 
 RUN dnf install -y \
-        libseccomp-devel
+  libseccomp-devel \
+  libbpf-devel \
+  elfutils-libelf-devel \
+  zlib-devel \
+  libzstd-devel
 
 ADD . /work
 RUN mkdir -p build
 
+# Use latest golang
+RUN ARCH=$(arch | sed 's|x86_64|amd64|g' | sed 's|aarch64|arm64|g') && \
+    GO_VERSION=$(curl -sSfL https://go.dev/VERSION?m=text | head -n1) && \
+    curl -sSfL https://go.dev/dl/${GO_VERSION}.linux-${ARCH}.tar.gz | \
+    tar -xzf - -C /usr/local
+ENV PATH="/usr/local/go/bin:$PATH"
+
 ARG APPARMOR_ENABLED=0
-ARG BPF_ENABLED=0
+ARG BPF_ENABLED=1
 
 # OCP in FIPS mode doesn't like statically linked SPO
 ARG STATIC_LINK=no
@@ -37,16 +48,20 @@ ARG STATIC_LINK=no
 RUN make
 
 # hash below referred to latest
-FROM registry.access.redhat.com/ubi8/ubi-minimal@sha256:a49924d9d685a35b2d0817ffe9c84f3429d97e9ad29ed3816c389f45564c9e19
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:8d905a93f1392d4a8f7fb906bd49bf540290674b28d82de3536bb4d0898bf9d7
 ARG version
 USER root
 
 RUN microdnf install -y \
-        libseccomp
+  libseccomp \
+  libbpf-devel \
+  elfutils-libelf-devel \
+  zlib-devel \
+  libzstd-devel
 
 LABEL name="Security Profiles Operator" \
-      version=$version \
-      description="The Security Profiles Operator makes it easier for cluster admins to manage their seccomp, SELinux or AppArmor profiles and apply them to Kubernetes' workloads."
+  version=$version \
+  description="The Security Profiles Operator makes it easier for cluster admins to manage their seccomp, SELinux or AppArmor profiles and apply them to Kubernetes' workloads."
 
 COPY --from=build /work/build/security-profiles-operator /usr/bin/
 COPY --from=build /work/build/spoc /usr/bin/

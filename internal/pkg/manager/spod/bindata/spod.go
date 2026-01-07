@@ -889,3 +889,16 @@ func CustomHostKubeletVolume(path string) (corev1.Volume, corev1.VolumeMount) {
 			ReadOnly:  false,
 		}
 }
+
+func CustomLogVolume(mountPath string, logVolumeSource *corev1.VolumeSource) (corev1.Volume, corev1.VolumeMount) {
+	const volumeName = "json-enricher-custom-audit-log-volume"
+
+	return corev1.Volume{
+			Name:         volumeName,
+			VolumeSource: *logVolumeSource,
+		}, corev1.VolumeMount{
+			Name:      volumeName,
+			MountPath: mountPath,
+			ReadOnly:  false,
+		}
+}
