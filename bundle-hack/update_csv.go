@@ -198,7 +198,7 @@ func replaceImages(m map[string]interface{}) error {
 		{
 			EnvName: "RELATED_IMAGE_OPERATOR",
 			// To trigger a rebuild of the bundle
-			KonfluxPS:  "quay.io/redhat-user-workloads/ocp-isc-tenant/security-profiles-operator-release@sha256:d21d88c128307ff2a91828c86b9382d10a0021b1240cf94d38ad7ae6c1ca58cc",
+			KonfluxPS:  "quay.io/redhat-user-workloads/ocp-isc-tenant/security-profiles-operator-release@sha256:060bff921b085ae8405720bc158ad8bdd0467f7f7cd838bc3f92f235f1c531ab",
 			RedHatBase: "registry.redhat.io/compliance/openshift-security-profiles-rhel8-operator",
 		},
 		{
